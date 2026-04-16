@@ -1,0 +1,103 @@
+name: Build FileSend
+
+on:
+  workflow_dispatch:
+    inputs:
+      platform:
+        description: 'Target platform'
+        required: true
+        default: 'windows'
+        type: choice
+        options:
+          - windows
+          - macos
+          - linux
+          - all
+
+jobs:
+  build:
+    runs-on: ${{ inputs.platform == 'macos' && 'macos-latest' || inputs.platform == 'linux' && 'ubuntu-22.04' || 'windows-latest' }}
+    
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+        with:
+          lfs: true
+
+      - name: Clone common package
+        run: |
+          git clone --depth=1 https://github.com/locaFileSendnd/common.git common
+          git clone --depth=1 https://github.com/locaFileSendnd/protocol.git protocol
+
+      - name: Setup Flutter
+        uses: subosito/flutter-action@v2
+        with:
+          flutter-version: '3.25.0'
+          channel: 'stable'
+          cache: true
+
+      - name: Add archive dependency
+        run: |
+          cd app
+          # Add archive to pubspec.yaml
+          sed -i '/dependencies:/a\  archive: ^3.4.0' pubspec.yaml
+          cat pubspec.yaml | grep -A5 "dependencies:"
+
+      - name: Get dependencies
+        run: |
+          cd app
+          flutter pub get
+
+      - name: Apply code modifications
+        run: |
+          # Copy new service files
+          mkdir -p app/lib/service
+          cp -r modified/app/lib/service/* app/lib/service/
+          
+          # The MODIFICATION_GUIDE.md contains the actual code changes needed
+          # For now, we just ensure the base build works
+          echo "Service files copied"
+
+      - name: Build for Windows
+        if: inputs.platform == 'windows' || inputs.platform == 'all'
+        run: |
+          cd app
+          flutter build windows --release
+        env:
+          FLUTTER_ROOT: ${{ env.FLUTTER_ROOT }}
+
+      - name: Build for macOS
+        if: inputs.platform == 'macos' || inputs.platform == 'all'
+        run: |
+          cd app
+          flutter build macos --release
+
+      - name: Build for Linux
+        if: inputs.platform == 'linux' || inputs.platform == 'all'
+        run: |
+          cd app
+          flutter build linux --release
+
+      - name: Upload Windows build
+        if: inputs.platform == 'windows' || inputs.platform == 'all'
+        uses: actions/upload-artifact@v4
+        with:
+          name: locaFileSendnd--windows
+          path: app/build/windows/runner/Release/*.exe
+          retention-days: 5
+
+      - name: Upload macOS build
+        if: inputs.platform == 'macos' || inputs.platform == 'all'
+        uses: actions/upload-artifact@v4
+        with:
+          name: locaFileSendnd--macos
+          path: app/build/macos/Build/Products/Release/*.app
+          retention-days: 5
+
+      - name: Upload Linux build
+        if: inputs.platform == 'linux' || inputs.platform == 'all'
+        uses: actions/upload-artifact@v4
+        with:
+          name: locaFileSendnd--linux
+          path: app/build/linux/*/release/bundle/*
+          retention-days: 5
