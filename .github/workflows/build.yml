@@ -36,9 +36,7 @@ jobs:
         run: |
           cp -r modified/app/lib/service app/app/lib/
           sed -i 's/name: localsend_app/name: filesend_app/' app/app/pubspec.yaml
-          # Remove problematic path version constraint, let Flutter resolve it
           sed -i 's/path: .*/path: any/' app/app/pubspec.yaml
-          cd app/app && flutter pub upgrade
 
       - name: Setup Flutter
         uses: subosito/flutter-action@v2
