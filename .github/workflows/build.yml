@@ -17,6 +17,9 @@ on:
 jobs:
   build:
     runs-on: ${{ inputs.platform == 'macos' && 'macos-latest' || inputs.platform == 'linux' && 'ubuntu-22.04' || 'windows-latest' }}
+    defaults:
+      run:
+        shell: bash
     
     steps:
       - name: Checkout custom files
@@ -27,14 +30,14 @@ jobs:
       - name: Clone LocalSend source
         run: |
           git clone --depth=1 https://github.com/localsend/localsend.git app
-          cd app && git clone --depth=1 https://github.com/localsend/common.git common
-          cd app && git clone --depth=1 https://github.com/localsend/protocol.git protocol
+          cd app && git clone --depth=1 https://github.com/localsend/common.git common && git clone --depth=1 https://github.com/localsend/protocol.git protocol
 
       - name: Apply custom modifications
         run: |
-          cd app
-          cp -r ../modified/app/lib/service app/lib/service/
-          Get-Content pubspec.yaml | ForEach-Object { $_ -replace '(dependencies:)', "`$1`n  archive: ^3.4.0" } | Set-Content pubspec.yaml
+          cp -r modified/app/lib/service app/app/lib/
+          if ! grep -q "archive:" app/app/pubspec.yaml; then
+            sed -i '/dependencies:/a\  archive: ^3.4.0' app/app/pubspec.yaml
+          fi
 
       - name: Setup Flutter
         uses: subosito/flutter-action@v2
@@ -45,25 +48,25 @@ jobs:
 
       - name: Get dependencies
         run: |
-          cd app
+          cd app/app
           flutter pub get
 
       - name: Build for Windows
         if: inputs.platform == 'windows' || inputs.platform == 'all'
         run: |
-          cd app
+          cd app/app
           flutter build windows --release
 
       - name: Build for macOS
         if: inputs.platform == 'macos' || inputs.platform == 'all'
         run: |
-          cd app
+          cd app/app
           flutter build macos --release
 
       - name: Build for Linux
         if: inputs.platform == 'linux' || inputs.platform == 'all'
         run: |
-          cd app
+          cd app/app
           flutter build linux --release
 
       - name: Upload Windows build
@@ -71,7 +74,7 @@ jobs:
         uses: actions/upload-artifact@v4
         with:
           name: filesend-windows
-          path: app/build/windows/runner/Release/*.exe
+          path: app/app/build/windows/runner/Release/*.exe
           retention-days: 5
 
       - name: Upload macOS build
@@ -79,7 +82,7 @@ jobs:
         uses: actions/upload-artifact@v4
         with:
           name: filesend-macos
-          path: app/build/macos/Build/Products/Release/*.app
+          path: app/app/build/macos/Build/Products/Release/*.app
           retention-days: 5
 
       - name: Upload Linux build
@@ -87,5 +90,5 @@ jobs:
         uses: actions/upload-artifact@v4
         with:
           name: filesend-linux
-          path: app/build/linux/*/release/bundle/*
+          path: app/app/build/linux/*/release/bundle/*
           retention-days: 5
