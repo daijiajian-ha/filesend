@@ -74,7 +74,7 @@ jobs:
         uses: actions/upload-artifact@v4
         with:
           name: filesend-windows
-          path: app/app/build/windows/x64/runner/Release/*.exe
+          path: app/app/build/windows/x64/runner/Release/bundle
           retention-days: 5
 
       - name: Upload macOS build
