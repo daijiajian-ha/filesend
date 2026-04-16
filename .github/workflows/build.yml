@@ -30,7 +30,7 @@ jobs:
       - name: Clone LocalSend source
         run: |
           rm -rf app
-          git clone --recurse-submodules --depth=1 https://github.com/localsend/localsend.git app
+          git clone --recurse-submodules --depth=1 --branch v1.16.1 https://github.com/localsend/localsend.git app
 
       - name: Apply custom modifications
         run: |
