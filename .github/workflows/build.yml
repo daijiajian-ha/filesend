@@ -29,6 +29,7 @@ jobs:
 
       - name: Clone LocalSend source
         run: |
+          rm -rf app
           git clone --depth=1 https://github.com/localsend/localsend.git app
           cd app && git clone --depth=1 https://github.com/localsend/common.git common && git clone --depth=1 https://github.com/localsend/protocol.git protocol
 
