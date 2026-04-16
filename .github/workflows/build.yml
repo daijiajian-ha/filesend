@@ -35,9 +35,9 @@ jobs:
       - name: Apply custom modifications
         run: |
           cp -r modified/app/lib/service app/app/lib/
-          if ! grep -q "archive:" app/app/pubspec.yaml; then
-            sed -i '/dependencies:/a\  archive: ^3.4.0' app/app/pubspec.yaml
-          fi
+          sed -i 's/name: localsend_app/name: filesend_app/' app/app/pubspec.yaml
+          sed -i 's/  archive: .*/archive: ^3.4.0/' app/app/pubspec.yaml
+          sed -i 's/path: .*/path: ^1.9.1/' app/app/pubspec.yaml
 
       - name: Setup Flutter
         uses: subosito/flutter-action@v2
