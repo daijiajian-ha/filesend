@@ -26,8 +26,8 @@ jobs:
 
       - name: Clone common package
         run: |
-          git clone --depth=1 https://github.com/locaFileSendnd/common.git common
-          git clone --depth=1 https://github.com/locaFileSendnd/protocol.git protocol
+          git clone --depth=1 https://github.com/localsend/common.git common
+          git clone --depth=1 https://github.com/localsend/protocol.git protocol
 
       - name: Setup Flutter
         uses: subosito/flutter-action@v2
@@ -82,7 +82,7 @@ jobs:
         if: inputs.platform == 'windows' || inputs.platform == 'all'
         uses: actions/upload-artifact@v4
         with:
-          name: locaFileSendnd--windows
+          name: localsend--windows
           path: app/build/windows/runner/Release/*.exe
           retention-days: 5
 
@@ -90,7 +90,7 @@ jobs:
         if: inputs.platform == 'macos' || inputs.platform == 'all'
         uses: actions/upload-artifact@v4
         with:
-          name: locaFileSendnd--macos
+          name: localsend--macos
           path: app/build/macos/Build/Products/Release/*.app
           retention-days: 5
 
@@ -98,6 +98,6 @@ jobs:
         if: inputs.platform == 'linux' || inputs.platform == 'all'
         uses: actions/upload-artifact@v4
         with:
-          name: locaFileSendnd--linux
+          name: localsend--linux
           path: app/build/linux/*/release/bundle/*
           retention-days: 5
