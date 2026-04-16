@@ -19,15 +19,26 @@ jobs:
     runs-on: ${{ inputs.platform == 'macos' && 'macos-latest' || inputs.platform == 'linux' && 'ubuntu-22.04' || 'windows-latest' }}
     
     steps:
-      - name: Checkout code
+      - name: Checkout custom files
         uses: actions/checkout@v4
         with:
           lfs: true
 
-      - name: Clone common package
+      - name: Clone LocalSend source
         run: |
+          git clone --depth=1 https://github.com/localsend/localsend.git app
+          cd app
           git clone --depth=1 https://github.com/localsend/common.git common
           git clone --depth=1 https://github.com/localsend/protocol.git protocol
+
+      - name: Apply custom modifications
+        run: |
+          cd app
+          # Copy new service files
+          cp -r ../modified/app/lib/service app/lib/service/
+          
+          # Add archive dependency to pubspec.yaml
+          sed -i '/dependencies:/a\  archive: ^3.4.0' pubspec.yaml
 
       - name: Setup Flutter
         uses: subosito/flutter-action@v2
@@ -36,35 +47,16 @@ jobs:
           channel: 'stable'
           cache: true
 
-      - name: Add archive dependency
-        run: |
-          cd app
-          # Add archive to pubspec.yaml
-          sed -i '/dependencies:/a\  archive: ^3.4.0' pubspec.yaml
-          cat pubspec.yaml | grep -A5 "dependencies:"
-
       - name: Get dependencies
         run: |
           cd app
           flutter pub get
-
-      - name: Apply code modifications
-        run: |
-          # Copy new service files
-          mkdir -p app/lib/service
-          cp -r modified/app/lib/service/* app/lib/service/
-          
-          # The MODIFICATION_GUIDE.md contains the actual code changes needed
-          # For now, we just ensure the base build works
-          echo "Service files copied"
 
       - name: Build for Windows
         if: inputs.platform == 'windows' || inputs.platform == 'all'
         run: |
           cd app
           flutter build windows --release
-        env:
-          FLUTTER_ROOT: ${{ env.FLUTTER_ROOT }}
 
       - name: Build for macOS
         if: inputs.platform == 'macos' || inputs.platform == 'all'
@@ -82,7 +74,7 @@ jobs:
         if: inputs.platform == 'windows' || inputs.platform == 'all'
         uses: actions/upload-artifact@v4
         with:
-          name: localsend--windows
+          name: filesend-windows
           path: app/build/windows/runner/Release/*.exe
           retention-days: 5
 
@@ -90,7 +82,7 @@ jobs:
         if: inputs.platform == 'macos' || inputs.platform == 'all'
         uses: actions/upload-artifact@v4
         with:
-          name: localsend--macos
+          name: filesend-macos
           path: app/build/macos/Build/Products/Release/*.app
           retention-days: 5
 
@@ -98,6 +90,6 @@ jobs:
         if: inputs.platform == 'linux' || inputs.platform == 'all'
         uses: actions/upload-artifact@v4
         with:
-          name: localsend--linux
+          name: filesend-linux
           path: app/build/linux/*/release/bundle/*
           retention-days: 5
