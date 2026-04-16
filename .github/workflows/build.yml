@@ -30,18 +30,14 @@ jobs:
       - name: Clone LocalSend source
         run: |
           rm -rf app
-          git clone --recurse-submodules --depth=1 --branch v1.17.0 https://github.com/localsend/localsend.git app
-          # Relax SDK constraint to allow Dart 3.7 (Flutter 3.29.0)
-          sed -i 's/sdk: \^3\.9\.0/sdk: ">=3.5.0 <4.0.0"/' app/app/pubspec.yaml
-          # Relax SDK constraint to allow Dart 3.7 (comes with Flutter 3.29.0)
-          sed -i 's/sdk: .*/sdk: ">=3.5.0 <4.0.0"/' app/app/pubspec.yaml
+          git clone --recurse-submodules --depth=1 --branch v1.16.1 https://github.com/localsend/localsend.git app
+          sed -i 's/path: 1.9.0/path: ^1.9.1/' app/app/pubspec.yaml
+          sed -i 's/gal: 2.3.0/gal: 2.3.2/' app/app/pubspec.yaml
 
       - name: Apply custom modifications
         run: |
           cp -r modified/app/lib/service app/app/lib/
           sed -i '/dependencies:/a\  archive: ^3.4.0' app/app/pubspec.yaml
-          sed -i 's/path: 1.9.0/path: ^1.9.1/' app/app/pubspec.yaml
-          sed -i 's/gal: 2.3.0/gal: 2.3.2/' app/app/pubspec.yaml
 
       - name: Setup Flutter
         uses: subosito/flutter-action@v2
